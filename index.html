@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SVG Studio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #12151d;
+    --panel-2: #171b25;
+    --line: #23283494;
+    --line-strong: #2e3444;
+    --ink: #e6e8ee;
+    --ink-dim: #8990a3;
+    --ink-faint: #565d70;
+    --accent: #7ee0c3;
+    --accent-dim: #7ee0c355;
+    --amber: #e0b273;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
+  body {
+    background-image:
+      radial-gradient(circle at 15% 0%, #1a2f2a55, transparent 40%),
+      radial-gradient(circle at 85% 100%, #2a1f3355, transparent 45%);
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 32px 80px;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .brand .mark {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line-strong);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .pane {
+    background: var(--panel);
+    display: flex;
+    flex-direction: column;
+  }
+  .pane-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .pane-head .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  textarea {
+    flex: 1;
+    min-height: 460px;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: vertical;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    padding: 18px 20px;
+    caret-color: var(--accent);
+  }
+  textarea::placeholder { color: var(--ink-faint); }
+  textarea::selection { background: var(--accent-dim); }
+
+  .bg-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    padding: 3px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .bg-toggle button {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    background: transparent;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .bg-toggle button:hover { color: var(--ink); }
+  .bg-toggle button.active {
+    background: var(--panel-2);
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+
+  .stage {
+    flex: 1;
+    min-height: 460px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  #checker {
+    position: absolute;
+    inset: 0;
+    display: none;
+    background-image:
+      linear-gradient(45deg, #262b36 25%, transparent 25%),
+      linear-gradient(-45deg, #262b36 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #262b36 75%),
+      linear-gradient(-45deg, transparent 75%, #262b36 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+  #preview-content {
+    position: relative;
+    width: 72%;
+    height: 72%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 12px 30px rgba(0,0,0,0.45));
+  }
+  #preview-content svg { width: 100%; height: 100%; }
+
+  .error {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    padding: 10px 16px;
+    border-top: 1px solid var(--line);
+    background: #1c1710;
+    display: none;
+  }
+  footer {
+    margin-top: 28px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span class="mark">SVG</span>
+      <h1>Studio</h1>
+    </div>
+    <p>paste &middot; preview &middot; edit &middot; instantly</p>
+  </header>
+
+  <div class="grid">
+    <div class="pane">
+      <div class="pane-head">
+        <span class="label"><span class="dot"></span>source</span>
+      </div>
+      <textarea id="svg-input" spellcheck="false" placeholder="Paste your <svg>...</svg> code here"></textarea>
+    </div>
+    <div class="pane">
+      <div class="pane-head">
+        <span class="label">preview</span>
+        <div class="bg-toggle">
+          <button id="bg-white">white</button>
+          <button id="bg-black">black</button>
+          <button id="bg-transparent">transparent</button>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <div id="checker"></div>
+        <div id="preview-content"></div>
+      </div>
+      <div class="error" id="error-msg"></div>
+    </div>
+  </div>
+
+  <footer>changes render as you type</footer>
+</div>
+
+<script>
+const input = document.getElementById('svg-input');
+const preview = document.getElementById('preview-content');
+const stage = document.getElementById('stage');
+const checker = document.getElementById('checker');
+const errorMsg = document.getElementById('error-msg');
+const btns = {
+  white: document.getElementById('bg-white'),
+  black: document.getElementById('bg-black'),
+  transparent: document.getElementById('bg-transparent')
+};
+
+let bgMode = 'white';
+
+function applyBg() {
+  Object.values(btns).forEach(b => b.classList.remove('active'));
+  if (bgMode === 'white') {
+    stage.style.background = '#ffffff';
+    checker.style.display = 'none';
+    btns.white.classList.add('active');
+  } else if (bgMode === 'black') {
+    stage.style.background = '#000000';
+    checker.style.display = 'none';
+    btns.black.classList.add('active');
+  } else {
+    stage.style.background = 'transparent';
+    checker.style.display = 'block';
+    btns.transparent.classList.add('active');
+  }
+}
+
+btns.white.onclick = () => { bgMode = 'white'; applyBg(); };
+btns.black.onclick = () => { bgMode = 'black'; applyBg(); };
+btns.transparent.onclick = () => { bgMode = 'transparent'; applyBg(); };
+
+function renderSvg() {
+  const code = input.value.trim();
+  if (!code) {
+    preview.innerHTML = '';
+    errorMsg.style.display = 'none';
+    return;
+  }
+  if (!/^<svg[\s>]/.test(code)) {
+    errorMsg.textContent = 'Input should start with an <svg> tag.';
+    errorMsg.style.display = 'block';
+    return;
+  }
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(code, 'image/svg+xml');
+    const parseError = doc.querySelector('parsererror');
+    if (parseError) {
+      errorMsg.textContent = 'Invalid SVG markup.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+    errorMsg.style.display = 'none';
+    preview.innerHTML = '';
+    preview.appendChild(doc.documentElement);
+  } catch (e) {
+    errorMsg.textContent = 'Could not parse SVG.';
+    errorMsg.style.display = 'block';
+  }
+}
+
+input.addEventListener('input', renderSvg);
+
+const defaultSvg = `<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#f6cba7"/>
+  <path d="M110 262
+           C150 190, 200 128, 256 150
+           C312 128, 362 190, 402 262
+           C362 320, 312 372, 256 380
+           C200 372, 150 320, 110 262 Z"
+        fill="#e08072"/>
+  <path d="M118 258
+           C160 232, 210 218, 256 218
+           C302 218, 352 232, 394 258
+           C350 246, 300 236, 256 236
+           C212 236, 162 246, 118 258 Z"
+        fill="#ffffff"/>
+  <path d="M118 258
+           C162 246, 212 236, 256 236
+           C300 236, 350 246, 394 258
+           C360 285, 320 305, 256 308
+           C192 305, 152 285, 118 258 Z"
+        fill="#5c2a28"/>
+  <path d="M180 270
+           C210 296, 232 306, 256 306
+           C280 306, 302 296, 332 270
+           C320 292, 292 300, 256 300
+           C220 300, 192 292, 180 270 Z"
+        fill="#c96a68"/>
+  <path d="M175 320
+           C205 338, 230 345, 256 345
+           C282 345, 307 338, 337 320
+           C320 348, 290 362, 256 364
+           C222 362, 192 348, 175 320 Z"
+        fill="#e6968a"/>
+</svg>`;
+
+input.value = defaultSvg;
+applyBg();
+renderSvg();
+</script>
+</body>
+</html>
